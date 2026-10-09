@@ -141,7 +141,7 @@ actions:
             config:
                 description: Find aid by hostname
                 end: now
-                last_modified_by: john.mccarthy@danaher.com
+                last_modified_by: example@example.com
                 last_modified_timestamp: "2026-05-05T13:30:55.814Z"
                 repo_or_view: search-all
                 search_name: Find aid by hostname
