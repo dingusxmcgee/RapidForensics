@@ -6,8 +6,7 @@ This repository contains the files and implementation steps needed to configure 
 
 > [!IMPORTANT]
 > These workflows assume that the Velociraptor offline collector is configured to upload the forensic collection ZIP file to an **Azure Storage blob**. Scripts and workflow settings must be modified if your environment or collection goals differ.
-
-The workflows rely on several PowerShell scripts to query the host and perform actions. You may need to customize these scripts or add functionality to meet the requirements of your environment.
+> The workflows rely on several PowerShell scripts to query the host and perform actions. You may need to customize these scripts or add functionality to meet the requirements of your environment.
 
 ## Included Workflows
 
