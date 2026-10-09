@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "for_process_name": {
+      "type": "string"
+    },
+    "for_is_running": {
+      "type": "boolean"
+    },
+    "for_count": {
+      "type": "integer"
+    },
+    "for_pids": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    }
+  },
+  "required": [
+    "for_process_name",
+    "for_is_running",
+    "for_count",
+    "for_pids"
+  ]
+}

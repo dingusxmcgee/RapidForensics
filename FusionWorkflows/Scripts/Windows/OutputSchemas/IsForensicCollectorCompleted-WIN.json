@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties":{
+    "azure_start_time": {
+      "type": "string"
+    },
+    "azure_end_time": {
+      "type": "string"
+    },
+    "azure_upload_time": {
+      "type": "string"
+    },
+    "completed_time": {
+      "type": "string"
+    },
+    "completed_total": {
+      "type": "string"
+    },
+    "collection_complete": {
+      "type": "boolean"
+    },
+    "logfile_path": {
+      "type": "string"
+    }
+  },
+  "required":[
+    "collection_complete"
+  ],
+  "type":"object"
+}
