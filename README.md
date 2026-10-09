@@ -1,5 +1,7 @@
 # CrowdStrike Fusion Workflows for Velociraptor Forensic Collection
 
+> Deploy a pre-configured forensic collector within minutes of critical activity or on the fly as needed.
+
 ## Overview
 
 This repository contains the files and implementation steps needed to configure **CrowdStrike Fusion Workflows** to run a **Velociraptor offline collector** and collect forensic artifacts from Windows-based hosts.
@@ -22,9 +24,7 @@ The workflow performs the following actions:
 4. Checks in a loop until the collector has finished uploading to Azure.
 5. Collects the local collector log file.
 6. Emails you the collector log along with some host and execution details.
-7. Requests human approval via the same email to delete the collection ZIP file from the host.
-
-If no approval response is received within 24 hours, the workflow defaults to leaving the ZIP file on the host.
+7. Requests human approval via the same email to delete the collection ZIP file from the host. If no approval response is received within 24 hours, the workflow defaults to leaving the ZIP file on the host.
 
 ### Detection-Based Rapid Forensic Collection
 
