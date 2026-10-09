@@ -1,0 +1,587 @@
+# This is an exported workflow. Editing this file is not recommended.
+
+name: On-Demand Rapid Forensic Collection
+trigger:
+    next:
+        - CreateGeneratedAidVariable
+    name: On demand
+    parameters:
+        properties:
+            aid:
+                type: string
+                title: aid (optional - choose only one)
+                description: ONLY use if hostname is BLANK
+                format: aid
+            hostname:
+                type: string
+                title: Hostname (optional - choose only one)
+                description: ONLY use if aid is BLANK
+                format: hostname
+        type: object
+    type: On demand
+actions:
+    CreateCollectionCompleteVariable:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create collection_complete variable
+        next:
+            - CreateTimeVariables
+        properties:
+            variable_schema:
+                properties:
+                    collection_complete:
+                        type: boolean
+                type: object
+        version_constraint: ~1
+    CreateCommentAndTagVariable:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create comment and tag variable
+        next:
+            - UpdateCommentVariable
+        properties:
+            variable_schema:
+                properties:
+                    comment:
+                        type: string
+                    comment_header:
+                        type: string
+                    tags:
+                        items:
+                            type: string
+                        type: array
+                type: object
+        version_constraint: ~1
+    CreateGeneratedAidVariable:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create generated_aid variable
+        next:
+            - aid_optional___choose_only_one_exists_aid_optional___choose_only_one_matches_
+        properties:
+            variable_schema:
+                properties:
+                    generated_aid:
+                        type: string
+                type: object
+        version_constraint: ~1
+    CreateLogfilePathVariable:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create logfile_path variable
+        next:
+            - SetCollectionCompleteToFalse
+        properties:
+            variable_schema:
+                properties:
+                    logfile_path:
+                        type: string
+                type: object
+        version_constraint: ~1
+    CreateRemoveZipChoiceVariable:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create remove_zip_choice variable
+        next:
+            - DefaultSetRemoveZipChoiceFalse
+        properties:
+            variable_schema:
+                properties:
+                    remove_zip_choice:
+                        type: boolean
+                type: object
+        version_constraint: ~1
+    CreateTimeVariables:
+        id: 702d15788dbbffdf0b68d8e2f3599aa4
+        default_name: Create variable
+        class: CreateVariable
+        name: Create time variables
+        next:
+            - CreateLogfilePathVariable
+        properties:
+            variable_schema:
+                properties:
+                    azure_upload_time:
+                        type: string
+                    total_collection_time:
+                        type: string
+                type: object
+        version_constraint: ~1
+    DefaultSetRemoveZipChoiceFalse:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: default set remove_zip_choice false
+        next:
+            - RequestHumanInputSendEmail
+        properties:
+            WorkflowCustomVariable:
+                remove_zip_choice: false
+        version_constraint: ~1
+    FindAidByHostname:
+        id: cdf5c3e0d69f156eaaf56c1f5d3f1b66
+        default_name: Workflow-specific event query
+        inline_configuration:
+            input_schema:
+                $schema: https://json-schema.org/draft-07/schema
+                properties:
+                    hostname:
+                        type: string
+                        title: Hostname
+                        default: '*'
+                required:
+                    - hostname
+                type: object
+                description: Generated request schema
+            config:
+                description: Find aid by hostname
+                end: now
+                last_modified_by: john.mccarthy@danaher.com
+                last_modified_timestamp: "2026-05-05T13:30:55.814Z"
+                repo_or_view: search-all
+                search_name: Find aid by hostname
+                search_query: |-
+                    ComputerName=?hostname
+                    | groupBy([aid], function=count(as=cnt))
+                    | sort(cnt, order=desc)
+                    | head(1)
+                search_query_args:
+                    hostname: '*'
+                start: 24h
+                tags: []
+        class: Inline.QueryEvent
+        name: find aid by hostname
+        next:
+            - SetGeneratedAidFromHostname
+        properties:
+            hostname: ${data['hostname']}
+            logscale_search_end_time: now
+            logscale_search_start_time: 1 hr
+            output_files_only: false
+            workflow_csv_header_fields: []
+            workflow_export_event_query_results_to_csv: false
+        version_constraint: ~1
+    GetDeviceDetails:
+        id: 6265dc947cc2252f74a5f25261ac36a9
+        default_name: Get device details
+        name: Get device details
+        next:
+            - platform_is_equal_to_windows
+        properties:
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+        version_constraint: ~1
+    GetDeviceDetailsFailOnPurposeNoAid:
+        id: 6265dc947cc2252f74a5f25261ac36a9
+        default_name: Get device details
+        name: Get device details - fail on purpose, no aid
+        properties:
+            device_id: ${aid}
+        version_constraint: ~1
+    GetLogFile:
+        id: 3bf73d1e9ee83b1d507c333680fc3d94
+        default_name: Get file
+        continue_on_error: true
+        name: Get log file
+        next:
+            - file_size_is_greater_than_0
+        properties:
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+            file_path: ${data['WorkflowCustomVariable.logfile_path']}
+        version_constraint: ~2
+    PutAndRunFile:
+        id: a29b38809708ffc5fb18a03676520b1a
+        default_name: Put and run file
+        name: Put and run file
+        next:
+            - SendInitialEmail
+        properties:
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+            file_name: YOUR_OFFLINE_COLLECTOR.exe
+            queue_offline: true
+        version_constraint: ~1
+    RequestHumanInputSendEmail:
+        id: d6731c10b24834e2e0f4bd9d390a29c8
+        default_name: Request human input - Send email
+        name: Request human input - Send email
+        next:
+            - human_response_is_equal_to_approve
+        properties:
+            allowed_responses:
+                - Approve
+                - Decline
+            file_attachment: ${GetLogFile.file_info}
+            msg: |-
+                Hostname: ${data['GetDeviceDetails.Hostname']}
+                aid: ${data['WorkflowCustomVariable.generated_aid']}
+                Last Login User: ${data['GetDeviceDetails.LastLoginUser']}
+                Local IP: ${data['GetDeviceDetails.LocalIP']}
+                Domain: ${data['GetDeviceDetails.MachineDomain']}
+
+                Trigger information:
+                CID: ${data['Trigger.CID']}
+                Source: ${data['Trigger.TriggerSource']}
+                Source User: ${data['Trigger.TriggerSource.User.Email']}
+                Source IP: ${data['Trigger.TriggerIP']}
+
+                Collection Info:
+                Collection Complete: ${data['WorkflowCustomVariable.collection_complete']}
+                Azure Upload Time: ${data['WorkflowCustomVariable.azure_upload_time']}
+                Total Collection Time: ${data['WorkflowCustomVariable.total_collection_time']}
+
+
+                To delete the zip file, select approve.
+                To leave it on the host, select decline.
+
+                This choice will time out after 24 hours and the default action will leave the zip file on the host.
+
+                An attempt was made to upload the collection log file, and if available, is attached to this email. Password is 'infected'. Log file is also available in the workflow execution log.
+
+                If log file collection was unsuccessful, the log file should remain on the host.
+            msg_type: text
+            skip_workflow_header: true
+            subject: INPUT REQUIRED - Adhoc Forensic Collection completed on ${data['GetDeviceDetails.Hostname']}
+            to:
+                - YOUR_EMAIL@example.com
+            user_input_timeout: 1d
+        version_constraint: ~1
+    SendEmail:
+        id: 07413ef9ba7c47bf5a242799f59902cc
+        default_name: Send email
+        name: Send email
+        properties:
+            msg: |-
+                Collector would have run on host:
+                HostName: ${data['GetDeviceDetails.Hostname']}
+                aid: ${data['WorkflowCustomVariable.generated_aid']}
+
+                Collector appears to be already running. See below for more details: Collector Currently Running: ${data['IsForensicCollectorRunningWIN.stdout']}
+
+                Trigger information:
+                CID: ${data['Trigger.CID']}
+                Source: ${data['Trigger.TriggerSource']}
+                Source User: ${data['Trigger.TriggerSource.User.Email']}
+                Source IP: ${data['Trigger.TriggerIP']}
+            msg_type: text
+            subject: Forensic Collector already running on ${data['GetDeviceDetails.Hostname']}
+            to:
+                - YOUR_EMAIL@example.com
+        version_constraint: ~1
+    SendInitialEmail:
+        id: 07413ef9ba7c47bf5a242799f59902cc
+        default_name: Send email
+        name: Send initial email
+        next:
+            - CreateCollectionCompleteVariable
+        properties:
+            msg: |-
+                Hostname: ${data['GetDeviceDetails.Hostname']}
+                aid: ${data['WorkflowCustomVariable.generated_aid']}
+                Last Login User: ${data['GetDeviceDetails.LastLoginUser']}
+                Local IP: ${data['GetDeviceDetails.LocalIP']}
+                Domain: ${data['GetDeviceDetails.MachineDomain']}
+
+                Trigger information:
+                CID: ${data['Trigger.CID']}
+                Source: ${data['Trigger.TriggerSource']}
+                Source User: ${data['Trigger.TriggerSource.User.Email']}
+                Source IP: ${data['Trigger.TriggerIP']}
+            msg_type: text
+            subject: Adhoc Forensic Collection executed on ${data['GetDeviceDetails.Hostname']}
+            to:
+                - YOUR_EMAIL@example.com
+        version_constraint: ~1
+    SetCollectionCompleteToFalse:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: set collection_complete to false
+        next:
+            - WhileCollectionCompleteIsEqualToFalse
+        properties:
+            WorkflowCustomVariable:
+                collection_complete: false
+        version_constraint: ~1
+    SetGeneratedAidFromAid:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: set generated_aid from aid
+        next:
+            - CreateCommentAndTagVariable
+        properties:
+            WorkflowCustomVariable:
+                generated_aid: ${data['aid']}
+        version_constraint: ~1
+    SetGeneratedAidFromHostname:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: set generated_aid from hostname
+        next:
+            - CreateCommentAndTagVariable
+        properties:
+            WorkflowCustomVariable:
+                generated_aid: ${data['FindAidByHostname'].results[0].aid}
+        version_constraint: ~1
+    SetRemoveZipChoiceTrue:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: set remove_zip_choice true
+        next:
+            - RemoveForensicCollectorZipFileWIN
+        properties:
+            WorkflowCustomVariable:
+                remove_zip_choice: true
+        version_constraint: ~1
+    IsForensicCollectorRunningWIN:
+        id: a29e7f62269745bd9799fa0a789d40a3_5c32f8f9c20011f1a0dc125183a56960_5b4b163dcb334059b7a25b2b3f56a43f
+        default_name: _IsForensicCollectorRunning - WIN
+        name: _IsForensicCollectorRunning - WIN
+        next:
+            - for_is_running_is_equal_to_true
+        properties:
+            csfusion_rtr_timeout: 60
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+        version_constraint: ~0
+    RemoveForensicCollectorLogFileWIN:
+        id: a29e7f62269745bd9799fa0a789d40a3_f1505104466d11f186863ed2f9620966_5b4b163dcb334059b7a25b2b3f56a43f
+        default_name: -RemoveForensicCollectorLogFile - WIN
+        name: -RemoveForensicCollectorLogFile - WIN
+        next:
+            - CreateRemoveZipChoiceVariable
+        properties:
+            csfusion_rtr_timeout: 120
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+            queue_offline: false
+        version_constraint: ~0
+    RemoveForensicCollectorLogFileWIN2:
+        id: a29e7f62269745bd9799fa0a789d40a3_f1505104466d11f186863ed2f9620966_5b4b163dcb334059b7a25b2b3f56a43f
+        default_name: -RemoveForensicCollectorLogFile - WIN
+        name: -RemoveForensicCollectorLogFile - WIN - 2
+        next:
+            - PutAndRunFile
+        properties:
+            csfusion_rtr_timeout: 120
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+            queue_offline: false
+        version_constraint: ~0
+    RemoveForensicCollectorZipFileWIN:
+        id: a29e7f62269745bd9799fa0a789d40a3_92bb481d463b11f1938f266bafb7cbdd_5b4b163dcb334059b7a25b2b3f56a43f
+        default_name: -RemoveForensicCollectorZipFile - WIN
+        name: -RemoveForensicCollectorZipFile - WIN
+        properties:
+            csfusion_rtr_timeout: 120
+            device_id: ${data['WorkflowCustomVariable.generated_aid']}
+            queue_offline: true
+        version_constraint: ~0
+    TimeoutSetRemoveZipChoiceFalse:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: timeout set remove_zip_choice false
+        properties:
+            WorkflowCustomVariable:
+                remove_zip_choice: false
+        version_constraint: ~1
+    UpdateCommentVariable:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        continue_on_error: true
+        name: Update comment variable
+        next:
+            - GetDeviceDetails
+        properties:
+            WorkflowCustomVariable:
+                comment_header: 'Adhoc Forensic collection for aid: ${data[''WorkflowCustomVariable.generated_aid'']}'
+        version_constraint: ~1
+    UserSetRemoveZipChoiceFalse:
+        id: 6c6eab39063fa3b72d98c82af60deb8a
+        default_name: Update variable
+        class: UpdateVariable
+        name: user set remove_zip_choice false
+        properties:
+            WorkflowCustomVariable:
+                remove_zip_choice: false
+        version_constraint: ~1
+conditions:
+    34file_size_is_equal_to_03434standard_error_exists34:
+        next:
+            - CreateRemoveZipChoiceVariable
+        expression: (GetLogFile.file_info.Size:0),(GetLogFile.stderr:!null)
+        display:
+            - '[[&#34;File Size is equal to 0&#34;],[&#34;Standard error exists&#34;]]'
+    aid_optional___choose_only_one_does_not_match__hostname_optional___choose_only_one_does_not_match_:
+        next:
+            - GetDeviceDetailsFailOnPurposeNoAid
+        expression: aid:*!'*'+hostname:*!'*'
+        display:
+            - aid (optional - choose only one) does not match *
+            - Hostname (optional - choose only one) does not match *
+    aid_optional___choose_only_one_exists_aid_optional___choose_only_one_matches_:
+        next:
+            - SetGeneratedAidFromAid
+        expression: aid:!null+aid:*'*'
+        display:
+            - aid (optional - choose only one) exists
+            - aid (optional - choose only one) matches *
+        else_if: hostname_optional___choose_only_one_exists_hostname_optional___choose_only_one_matches__aid_optional
+    file_size_is_greater_than_0:
+        next:
+            - RemoveForensicCollectorLogFileWIN
+        expression: GetLogFile.file_info.Size:>0
+        display:
+            - File Size is greater than 0
+        else_if: 34file_size_is_equal_to_03434standard_error_exists34
+    for_is_running_is_equal_to_false:
+        next:
+            - RemoveForensicCollectorLogFileWIN2
+        expression: IsForensicCollectorRunningWIN.for_is_running:false
+        display:
+            - For is running is equal to False
+    for_is_running_is_equal_to_true:
+        next:
+            - SendEmail
+        expression: IsForensicCollectorRunningWIN.for_is_running:true
+        display:
+            - For is running is equal to True
+        else_if: for_is_running_is_equal_to_false
+    hostname_optional___choose_only_one_exists_hostname_optional___choose_only_one_matches__aid_optional:
+        next:
+            - FindAidByHostname
+        expression: hostname:!null+hostname:*'*'+aid:*!'*'
+        display:
+            - Hostname (optional - choose only one) exists
+            - Hostname (optional - choose only one) matches *
+            - aid (optional - choose only one) does not match *
+        else_if: aid_optional___choose_only_one_does_not_match__hostname_optional___choose_only_one_does_not_match_
+    human_response_is_equal_to_approve:
+        next:
+            - SetRemoveZipChoiceTrue
+        expression: RequestHumanInputSendEmail.result.user_response:'Approve'
+        display:
+            - Human response is equal to Approve
+        else_if: human_response_is_equal_to_timed_out
+    human_response_is_equal_to_decline:
+        next:
+            - UserSetRemoveZipChoiceFalse
+        expression: RequestHumanInputSendEmail.result.user_response:'Decline'
+        display:
+            - Human response is equal to Decline
+    human_response_is_equal_to_timed_out:
+        next:
+            - TimeoutSetRemoveZipChoiceFalse
+        expression: RequestHumanInputSendEmail.result.user_response:'Timed out'
+        display:
+            - Human response is equal to Timed out
+        else_if: human_response_is_equal_to_decline
+        name: Approval timed out
+    platform_is_equal_to_windows:
+        next:
+            - IsForensicCollectorRunningWIN
+        expression: GetDeviceDetails.Platform:'Windows'
+        display:
+            - Platform is equal to Windows
+loops:
+    WhileCollectionCompleteIsEqualToFalse:
+        display: While collection_complete is equal to False
+        name: While collection_complete is equal to False
+        next:
+            - GetLogFile
+        for:
+            input: ""
+            condition: WorkflowCustomVariable.collection_complete:false
+            condition_display:
+                - collection_complete is equal to False
+            continue_on_partial_execution: false
+            sequential: true
+        trigger:
+            next:
+                - Sleep3Min
+        actions:
+            SetCollectionCompleteToFalseAgain:
+                id: 6c6eab39063fa3b72d98c82af60deb8a
+                default_name: Update variable
+                class: UpdateVariable
+                name: set collection_complete to false again
+                properties:
+                    WorkflowCustomVariable:
+                        collection_complete: false
+                version_constraint: ~1
+            SetCollectionCompleteToTrue:
+                id: 6c6eab39063fa3b72d98c82af60deb8a
+                default_name: Update variable
+                class: UpdateVariable
+                name: set collection_complete to true
+                next:
+                    - UpdateLogfileAndTimeVariables
+                properties:
+                    WorkflowCustomVariable:
+                        collection_complete: true
+                version_constraint: ~1
+            Sleep3Min:
+                id: 4f1af1ae4c13dc1e3bcd725f8dc0f63b
+                default_name: Sleep
+                name: Sleep 3 min
+                next:
+                    - IsForensicCollectorCompletedWIN
+                properties:
+                    sleep_time: 3m
+                version_constraint: ~1
+            IsForensicCollectorCompletedWIN:
+                id: a29e7f62269745bd9799fa0a789d40a3_2695352c459311f1bc1a7689f2c8329e_5b4b163dcb334059b7a25b2b3f56a43f
+                default_name: -IsForensicCollectorCompleted - WIN
+                continue_on_error: true
+                name: -IsForensicCollectorCompleted - WIN
+                next:
+                    - collection_complete_is_equal_to_true
+                properties:
+                    csfusion_rtr_timeout: 120
+                    device_id: ${data['WorkflowCustomVariable.generated_aid']}
+                version_constraint: ~0
+            UpdateLogfileAndTimeVariables:
+                id: 6c6eab39063fa3b72d98c82af60deb8a
+                default_name: Update variable
+                class: UpdateVariable
+                name: Update logfile and time variables
+                properties:
+                    WorkflowCustomVariable:
+                        azure_upload_time: ${data['IsForensicCollectorCompletedWIN.azure_upload_time']}
+                        logfile_path: ${data['IsForensicCollectorCompletedWIN.logfile_path']}
+                        total_collection_time: ${data['IsForensicCollectorCompletedWIN.completed_total']}
+                version_constraint: ~1
+        conditions:
+            collection_complete_is_equal_to_false:
+                next:
+                    - SetCollectionCompleteToFalseAgain
+                expression: IsForensicCollectorCompletedWIN.collection_complete:false
+                display:
+                    - Collection complete is equal to False
+            collection_complete_is_equal_to_true:
+                next:
+                    - SetCollectionCompleteToTrue
+                expression: IsForensicCollectorCompletedWIN.collection_complete:true
+                display:
+                    - Collection complete is equal to True
+                else_if: collection_complete_is_equal_to_false
+        output_fields:
+            - WorkflowCustomVariable.collection_complete
+            - WhileCollectionCompleteIsEqualToFalse.Iteration
+            - WhileCollectionCompleteIsEqualToFalse.Elapsed
+            - IsForensicCollectorCompletedWIN.azure_end_time
+            - IsForensicCollectorCompletedWIN.azure_start_time
+            - IsForensicCollectorCompletedWIN.azure_upload_time
+            - IsForensicCollectorCompletedWIN.collection_complete
+            - IsForensicCollectorCompletedWIN.completed_time
+            - IsForensicCollectorCompletedWIN.completed_total
+            - IsForensicCollectorCompletedWIN.logfile_path
+            - IsForensicCollectorCompletedWIN.stdout
+            - WorkflowCustomVariable.azure_upload_time
+            - WorkflowCustomVariable.total_collection_time
+            - WorkflowCustomVariable.logfile_path

@@ -1,0 +1,44 @@
+flowchart TD
+
+A[Critical Falcon Overwatch Detection] --> B[Get Device Details]
+B --> C{Windows Host?}
+
+C --> D[Check If Collector Running]
+
+D -->|Running| E["Send Alert Email<br/>Collector Already Running"]
+
+D -->|Not Running| F["Check Collector Executed<br/>Within Last 24 Hours"]
+
+F -->|Yes| G["Send Alert Email<br/>Already Ran Recently"]
+
+F -->|No| H[Remove Existing Log File]
+
+H --> I["Deploy & Run<br/>Rapid Forensics Collector"]
+
+I --> J[Send Initial Email]
+
+J --> K[Add Comment To Detection]
+
+K --> L[Initialize Collection Variables]
+
+L --> M[Loop Every 3 Minutes]
+
+M --> N{Collection Complete?}
+
+N -->|No| M
+
+N -->|Yes| O["Capture Upload Time<br/>Collection Time<br/>Log Path"]
+
+O --> P[Download Collector Log]
+
+P --> Q[Remove Log File From Host]
+
+Q --> R[Request Analyst Approval]
+
+R --> S{Delete ZIP File?}
+
+S -->|Approve| T[Delete ZIP From Host]
+
+S -->|Decline| U[Leave ZIP On Host]
+
+S -->|Timeout| U

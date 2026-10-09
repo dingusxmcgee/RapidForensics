@@ -1,0 +1,50 @@
+flowchart TD
+
+A[Analyst Starts Workflow]
+
+A --> B{Input Type}
+
+B -->|AID| C[Use AID]
+
+B -->|Hostname| D[Lookup AID By Hostname]
+
+C --> E[Set Generated AID]
+D --> E
+
+E --> F[Get Device Details]
+
+F --> G{Windows Host?}
+
+G --> H[Check If Collector Running]
+
+H -->|Running| I[Send Already Running Email]
+
+H -->|Not Running| J[Remove Existing Log File]
+
+J --> K["Deploy & Run<br/>Rapid Forensics Collector"]
+
+K --> L[Send Initial Notification]
+
+L --> M[Initialize Collection Variables]
+
+M --> N[Loop Every 3 Minutes]
+
+N --> O{Collection Complete?}
+
+O -->|No| N
+
+O -->|Yes| P["Capture Upload Time<br/>Collection Time<br/>Log Path"]
+
+P --> Q[Download Collector Log]
+
+Q --> R[Remove Log File From Host]
+
+R --> S[Request Analyst Approval]
+
+S --> T{Delete ZIP File?}
+
+T -->|Approve| U[Delete ZIP From Host]
+
+T -->|Decline| V[Leave ZIP On Host]
+
+T -->|Timeout| V

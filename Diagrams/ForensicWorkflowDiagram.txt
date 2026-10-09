@@ -1,0 +1,94 @@
+┌─────────────────────────────┐
+│ CrowdStrike Detection       │
+│ - Severity = Critical       │
+│ - Falcon Overwatch          │
+│ - Description contains OW   │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│ Get Device Details          │
+│ Platform = Windows?         │
+└──────────────┬──────────────┘
+               │
+               ▼
+┌─────────────────────────────┐
+│ Is Collector Running?       │
+└───────┬───────────┬─────────┘
+        │Yes        │No
+        ▼           ▼
+┌─────────────┐  ┌─────────────────────┐
+│ Send Alert  │  │ Check for Collector │
+│ Email       │  │ Execution <24 Hours │
+└─────────────┘  └──────────┬──────────┘
+                            │
+                ┌───────────┴───────────┐
+                │                       │
+              Yes                      No
+                │                       │
+                ▼                       ▼
+      ┌────────────────┐     ┌─────────────────┐
+      │ Send Alert     │     │ Remove Old Log  │
+      │ Email          │     │ File            │
+      └────────────────┘     └────────┬────────┘
+                                      │
+                                      ▼
+                           ┌─────────────────┐
+                           │ Deploy & Run    │
+                           │ Forensic        │
+                           │ Collector       │
+                           └────────┬────────┘
+                                    │
+                                    ▼
+                           ┌─────────────────┐
+                           │ Send Initial    │
+                           │ Email + Add     │
+                           │ Detection Note  │
+                           └────────┬────────┘
+                                    │
+                                    ▼
+                           ┌─────────────────┐
+                           │ Poll Every      │
+                           │ 3 Minutes       │
+                           │ Collection Done?│
+                           └────────┬────────┘
+                                    │
+                         ┌──────────┴──────────┐
+                         │                     │
+                        No                    Yes
+                         │                     │
+                         └────── Loop ─────────┘
+                                               │
+                                               ▼
+                                   ┌─────────────────┐
+                                   │ Capture Times  │
+                                   │ & Log File     │
+                                   └────────┬────────┘
+                                            │
+                                            ▼
+                                   ┌─────────────────┐
+                                   │ Retrieve Log    │
+                                   │ File            │
+                                   └────────┬────────┘
+                                            │
+                                            ▼
+                                   ┌─────────────────┐
+                                   │ Remove Log File │
+                                   │ from Endpoint   │
+                                   └────────┬────────┘
+                                            │
+                                            ▼
+                           ┌─────────────────────────┐
+                           │ Human Approval Email    │
+                           │ Delete ZIP Collection?  │
+                           └─────────────┬───────────┘
+                                         │
+                           ┌─────────────┴─────────────┐
+                           │                           │
+                       Approve                Decline/Timeout
+                           │                           │
+                           ▼                           ▼
+                ┌─────────────────┐        ┌─────────────────┐
+                │ Delete ZIP File │        │ Leave ZIP File  │
+                │ From Endpoint   │        │ On Endpoint     │
+                └─────────────────┘        └─────────────────┘
