@@ -101,3 +101,7 @@ Test the workflow before production use.
 The collection process is not destructive. If desired, insert **Sleep** actions between workflow actions. This provides time to start the workflow, review its status, and verify earlier actions before the workflow begins longer-running steps such as executing the collector.
 
 
+
+## Bonus Round
+
+I have also included a powershell script in the ServerComponents folder that will assist you with either manually downloading or automatically downloading new collections from your blob storage. As with all the other items, if you use a different storage mechanism, you will need to modify the script.
