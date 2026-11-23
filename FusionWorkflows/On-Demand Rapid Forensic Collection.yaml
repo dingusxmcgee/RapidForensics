@@ -159,7 +159,7 @@ actions:
         next:
             - SetGeneratedAidFromHostname
         properties:
-            hostname: ${data['hostname']}
+            hostname: ${data['hostname'].upperAscii().trim()}
             logscale_search_end_time: now
             logscale_search_start_time: 1 hr
             output_files_only: false
